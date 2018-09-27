@@ -16,6 +16,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"golang.org/x/net/proxy"
 )
 
 const (
@@ -178,12 +180,18 @@ func DialConfig(url string, config Config) (*Connection, error) {
 
 	addr := net.JoinHostPort(uri.Host, strconv.FormatInt(int64(uri.Port), 10))
 
-	dialer := config.Dial
-	if dialer == nil {
-		dialer = defaultDial
+	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:9050", nil, proxy.Direct)
+	if err != nil {
+		return nil, err
 	}
 
-	conn, err = dialer("tcp", addr)
+	/*dialer := config.Dial
+	if dialer == nil {
+		dialer = defaultDial
+	}*/
+
+	//conn, err = dialer("tcp", addr)
+	conn, err = dialer.Dial("tcp4", addr)
 	if err != nil {
 		return nil, err
 	}
